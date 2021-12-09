@@ -1,0 +1,15 @@
+#------------------------------------------------------------------------------------
+# Step 300 : Target 
+#------------------------------------------------------------------------------------
+step 300 Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v MET_V="${MET_V}" \
+              -v STEP_NO="300" \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v TMP_T="${TMP_T:?}" \
+              -v STG_T="${STG_T:?}" \
+              -v RUN_ID="${RUN_ID:?}"\
+			  -v RUNDATE="${RUNDATE:?}"\
+              -v JOB=${JOB:?} ${STEP_DIR:?}/${JOB}.300.TARGET.sql
+			  
+INSERTED_TARGET=$(tjc_stepout -l | awk '/^ ... Insert completed. / { if ($4 == "No") rows = 0; else if ($4 == "One") rows = 1; else rows = $4 } END { print rows }')
+INSERTED_TARGET=${INSERTED_TARGET:-0}

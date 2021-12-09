@@ -1,0 +1,15 @@
+PATTERN : "FULLAPP"
+BUILD:
+  TEMPLATES:
+    FullApplyTransStep:
+      TYPE: "SIMPLE"
+      FILENAME_TEMPLATE: "FULL_APPLY_TRANS.filename.jinja"
+      TEMPLATE: "FULL_APPLY_TRANS.sql.jinja"
+    FullApplyValidStep:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "FULL_APPLY_TARGET.filename.jinja"
+      TEMPLATE: "FULL_APPLY_TARGET.sql.jinja"
+    FullApplyJobs:
+      TYPE: "SIMPLE"
+      FILENAME_TEMPLATE: "FULL_APPLY_JOB.filename.jinja"
+      TEMPLATE: "FULL_APPLY_JOBS.jinja"

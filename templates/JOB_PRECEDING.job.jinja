@@ -1,0 +1,23 @@
+
+#-------------------------------------------------------------------------------
+# Step 009 : GetPrecedingJobs
+#-------------------------------------------------------------------------------
+
+step 009 Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v MET_V="${MET_V}" \
+              -v JOB="${JOB:?}" \
+              -v STEP_NO=009 \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v PARAM_TXT="RUNDATE" -v PARAM_FORMAT="YYYY-MM-DD" \
+              -v PARAM_COL="PARAM_DT" -v PARAM_TYPE="DATE" \
+              ${STEP_DIR:?}/GetPrecedingJobs.sql
+
+PRECEDING_JOBS=$(tjc_stepout -l | awk '/^PRECEDING_JOB/ { print $2" "$3" "$4 }')
+PRECEDING_JOBS=${PRECEDING_JOBS:}
+
+
+#-------------------------------------------------------------------------------
+# Step 010 : WaitForPrecedingJobs
+#-------------------------------------------------------------------------------
+
+step 010 "WaitForPrecedingJobs"

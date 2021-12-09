@@ -1,0 +1,17 @@
+JOB_ID,PARAM_TXT,PARAM_DT,PARAM_DTTM,PARAM_INT,Item_Name,Item_Value,Large_Number
+{%- for job, value in TASK.DATAMOVER.JOBS.items() %}
+{%- if value.TYPE == "DMV" %}
+{{job}},Data Mover {{value.DATABASE}} from Citywest to Ballycoolin,0,0,Resolve ASAP,Fujitsu Support: G09D-TeradataRDBA@fujitsu.com
+#{{job}} ----------------------------,,,,,,,
+{{job}},DM_TYPE,,,,,DATABASE_NAME,
+{{job}},DM_JOB,,,,,value.DATABASE,
+{{job}},DMV_POST,,,,,NO_DMV_POST,
+{{job}},DMV_PRE,,,,,NO_DMV_PRE,
+{%- elif value.TYPE == "DMB" %}
+#{{job}} ----------------------------,,,,,,,
+{{job}},DM_TYPE,,,,,DATABASE_NAME,
+{{job}},DM_JOB,,,,,DWP01V_ACC_BNM DWP01V_ACC_BNM Y TeraDR TeraDW DR_PD_DWP01V_ACC_BNM,
+{{job}},DMV_POST,,,,,NO_DMV_POST,
+{{job}},DMV_PRE,,,,,NO_DMV_PRE,{%- elif value.TYPE == "DMM" %}
+{%- endif %}
+{%- endfor %} 

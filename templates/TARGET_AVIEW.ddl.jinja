@@ -1,0 +1,41 @@
+/*
+/*
+# ===============================================================================
+#                      {{TASK.PROJECT.COMPANY}}
+#
+# ===============================================================================
+# ===============================================================================
+# File Name           : {{TASK.TARGET.TABLE.lower()}}_a.ddl
+# Pattern             : FULL APPLY
+# Purpose             : Target table access vuew
+# Author              : {{TASK.PROJECT.TEAM}}
+# File Type           : SQL
+# Creation Date       : {{TASK.PROJECT.DATE}}
+# Pending                                 :
+# Version             : Initial Version
+# -------------------------------------------------------------------------------
+# Change History :
+# Ver  | Date        |  Modified By           |  Change Description
+# -------------------------------------------------------------------------------
+# 1.0  | {{TASK.PROJECT.DATE}}   |  {{TASK.PROJECT.TEAM}}         |  INITIAL CODE
+#
+# ===============================================================================
+*/
+REPLACE VIEW DW${INSTANCE}A_{{TASK.TARGET.DATABASE}}.{{TASK.TARGET.TABLE}}
+    AS
+    LOCKING ROW FOR ACCESS
+    SELECT
+    {%- for key, value in TASK.TARGET.COLUMNS.items() %}
+    {% if loop.first%} {% else %},{% endif %}{{key}}
+    {%- endfor %}
+    {% if TASK.TARGET.FILE_ID_IND == 'Y' %},FILE_ID{% endif %}
+    {% if TASK.TARGET.SRC_ID_IND == 'Y' %},SRC_ID{% endif %}
+    ,START_DT
+    ,END_DT
+    ,RECORD_DEL_IND
+    ,JOB_ID
+    ,RUN_ID
+    ,UPDATE_JOB_ID
+    ,UPDATE_RUN_ID
+FROM DW${INSTANCE}A_{{TASK.TARGET.DATABASE}}.{{TASK.TARGET.TABLE}}
+;

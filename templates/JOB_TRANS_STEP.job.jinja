@@ -1,0 +1,20 @@
+{{TASK.TRANS_STEP}}
+
+{%- for value in TASK.TRANS_STEP %}
+
+#------------------------------------------------------------------------------------
+# Step {{value.STEP_NO}} : Transform - {{value.STEP_NAME}}
+#------------------------------------------------------------------------------------
+
+step {{value.STEP_NO}} Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v MET_V="${MET_V}" \
+              -v STEP_NO="{{value.STEP_NO}}" \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v TMP_T="${TMP_T:?}" \
+              -v STG_T="${STG_T:?}" \
+              -v SRCI_V="${SRCI_V:?}" \
+              -v RUN_ID="${RUN_ID:?}"\
+              -v JOB=${JOB:?} ${STEP_DIR:?}/${JOB}.{{value.STEP_NO}}.TRANS.sql
+
+{%- endfor %}
+

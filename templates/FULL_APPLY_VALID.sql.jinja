@@ -1,0 +1,142 @@
+/*
+# ===============================================================================
+#                      {{TASK.PROJECT.COMPANY}}
+#
+# ===============================================================================
+# ===============================================================================
+# File Name           : {{TASK.JOB}}.{{TASK.VALID_STEP.STEP_NO}}.VALID.sql
+# Pattern             : FULL APPLY
+# Purpose             : {{TASK.PROJECT.PURPOSE}}
+# Author              : {{TASK.PROJECT.TEAM}}
+# File Type           : SQL
+# Creation Date       : {{TASK.PROJECT.DATE}}
+# Pending                                 :
+# Version             : Initial Version
+# -------------------------------------------------------------------------------
+# Change History :
+# Ver  | Date        |  Modified By           |  Change Description
+# -------------------------------------------------------------------------------
+# 1.0  | {{TASK.PROJECT.DATE}}   |  {{TASK.PROJECT.TEAM}}         |  INITIAL CODE
+#
+# ===============================================================================
+*/
+ 
+/* Set query band */
+SET QUERY_BAND = 'ApplicationName=TJC;Group=IT;JobId=${JOB};JobSeq=${STEP_NO};Instance=${INSTANCE};' UPDATE FOR SESSION
+;
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101
+ 
+ 
+DELETE FROM DW${INSTANCE}T_TMP_{{TASK.SYSTEM}}.${JOB}_VALID ALL
+;
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101
+ 
+/*
+ 
+Populate TRANS table with NEW Rows
+ 
+*/
+ 
+INSERT INTO DW${INSTANCE}T_TMP_{{TASK.SYSTEM}}.${JOB}_VALID
+(
+    {%- for key, value in TASK.TARGET.COLUMNS.items() %}
+    {% if loop.first%} {% else %},{% endif %}{{key}}
+    {%- endfor %}
+    {% if TASK.TARGET.FILE_ID_IND == 'Y' %},FILE_ID{% endif %}
+    {% if TASK.TARGET.SRC_ID_IND == 'Y' %},SRC_ID{% endif %}
+    ,START_DT
+    ,END_DT
+    ,RECORD_DEL_IND
+    ,JOB_ID
+    ,RUN_ID
+    ,UPDATE_JOB_ID
+    ,UPDATE_RUN_ID
+)
+SELECT         
+    {%- for key, value in TASK.TARGET.COLUMNS.items() %}
+    {% if loop.first%} {% else %},{% endif %}TRANS1.{{key}}
+    {%- endfor %}      
+    {% if TASK.TARGET.FILE_ID_IND == 'Y' %},TRANS1.FILE_ID{% endif %}
+    {% if TASK.TARGET.SRC_ID_IND == 'Y' %},TRANS1.SRC_ID{% endif %}                
+    ,DATE '${RUNDATE}' AS START_DT
+    ,DATE '3500-12-31' AS END_DT
+    ,0 AS RECORD_DEL_IND
+    ,'${JOB}' AS JOB_ID
+    ,'${RUN_ID}' AS RUN_ID
+    ,NULL AS UPDATE_JOB_ID
+    ,NULL AS UPDATE_RUN_ID
+FROM DW${INSTANCE}T_TMP_{{TASK.SYSTEM}}.${JOB}_TRANS AS TRANS1
+LEFT OUTER JOIN DW${INSTANCE}V_{{TASK.TARGET.DATABASE}}.{{TASK.TARGET.TABLE}} AS TRG
+/* Join on transformation key */
+ON 
+    {%- for key, value in TASK.TARGET.COLUMNS.items() if value.TKEY == "Y" %}
+    {% if loop.first%}    {% else %}AND {% endif %}TRANS1.{{key}} = TRG.{{key}}
+    {%- endfor %} 
+WHERE
+       TRG.START_DT IS NULL /* new row */
+    OR TRG.RECORD_DEL_IND = 1 /* if the current record is deleted then record comes into scope again */
+    /* detect change in row  */
+    {%- for key, value in TASK.TARGET.COLUMNS.items() if value.TKEY == "N" %}
+    OR (TRANS1.{{key}}<>TRG.{{key}} {% if value.NULL != 'N'%} OR ( TRANS1.{{key}} IS NOT NULL AND TRG.{{key}} IS NULL){% endif %})
+    {%- endfor %} 
+  ;
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101
+
+{%- if TASK.VALID_STEP.LOGICAL_DEL == "Y" %}
+ 
+INSERT INTO DW${INSTANCE}T_TMP_{{TASK.SYSTEM}}.${JOB}_VALID
+(
+    {%- for key, value in TASK.TARGET.COLUMNS.items() %}
+    {% if loop.first%} {% else %},{% endif %}{{key}}
+    {%- endfor %}
+    {% if TASK.TARGET.FILE_ID_IND == 'Y' %},FILE_ID{% endif %}
+    {% if TASK.TARGET.SRC_ID_IND == 'Y' %},SRC_ID{% endif %}
+    ,START_DT
+    ,END_DT
+    ,RECORD_DEL_IND
+    ,JOB_ID
+    ,RUN_ID
+    ,UPDATE_JOB_ID
+    ,UPDATE_RUN_ID
+)
+SELECT         
+    {%- for key, value in TASK.TARGET.COLUMNS.items() %}
+    {% if loop.first%} {% else %},{% endif %}TRG.{{key}}
+    {%- endfor %}      
+    {% if TASK.TARGET.FILE_ID_IND == 'Y' %},TRG.FILE_ID{% endif %}
+    {% if TASK.TARGET.SRC_ID_IND == 'Y' %},TRG.SRC_ID{% endif %}                
+    ,DATE '${RUNDATE}' AS START_DT
+    ,DATE '3500-12-31' AS END_DT
+    ,1 AS RECORD_DEL_IND
+    ,'${JOB}' AS JOB_ID
+    ,'${RUN_ID}' AS RUN_ID
+    ,TRG.UPDATE_JOB_ID AS UPDATE_JOB_ID
+    ,TRG.UPDATE_RUN_ID AS UPDATE_RUN_ID
+FROM DW${INSTANCE}V_{{TASK.TARGET.DATABASE}}.{{TASK.TARGET.TABLE}} AS TRG
+NOT EXISTS ( SELECT 1 FROM DW${INSTANCE}T_TMP_{{TASK.SYSTEM}}.${JOB}_TRANS AS TRANS1
+WHERE 
+    {%- for key, value in TASK.TARGET.COLUMNS.items() if value.TKEY == "Y" %}
+    {% if loop.first%}    {% else %}AND {% endif %}TRANS1.{{key}} = TRG.{{key}}
+    {%- endfor %} 
+    AND TRG.END_DT         = DATE '3500-12-31'
+    AND TRG.RECORD_DEL_IND = 0
+;
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101
+
+{%- endif %}
+
+{%- if TASK.VALID_STEP.COLLECT_STATS == "Y" %}
+
+/* Collect stats on valid table */
+
+COLLECT STATS ON DW${INSTANCE}T_TMP_{{TASK.SYSTEM}}.${JOB}_VALID COLUMN(
+    {%- for key, value in TASK.TARGET.COLUMNS.items() if value.TKEY == "Y" %}
+    {%- if loop.first%} {% else %},{% endif %}{{key}}
+    {%- endfor %})
+;
+.IF ERRORCODE <> 0 THEN .QUIT 101
+{%- endif %}

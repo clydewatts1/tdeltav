@@ -1,0 +1,33 @@
+/*
+/*
+# ===============================================================================
+#                      {{TASK.PROJECT.COMPANY}}
+#
+# ===============================================================================
+# ===============================================================================
+# File Name           : DW${INSTANCE}T_TMP_{{TASK.SYSTEM}}.${JOB}_TRANS_t.ddl
+# Pattern             : FULL APPLY
+# Purpose             : Create Trans table
+# Author              : {{TASK.PROJECT.TEAM}}
+# File Type           : SQL
+# Creation Date       : {{TASK.PROJECT.DATE}}
+# Pending                                 :
+# Version             : Initial Version
+# -------------------------------------------------------------------------------
+# Change History :
+# Ver  | Date        |  Modified By           |  Change Description
+# -------------------------------------------------------------------------------
+# 1.0  | {{TASK.PROJECT.DATE}}   |  {{TASK.PROJECT.TEAM}}         |  INITIAL CODE
+#
+# ===============================================================================
+*/
+CREATE MULTISET TABLE DW${INSTANCE}T_TMP_{{TASK.SYSTEM}}.${JOB}_TRANS
+     (
+    {%- for key, value in TASK.TARGET.COLUMNS.items() %}
+    {% if loop.first%} {% else %},{% endif %}{{key}}
+    {%- endfor %}
+    {% if TASK.TARGET.FILE_ID_IND == 'Y' %},FILE_ID{% endif %}
+    {% if TASK.TARGET.SRC_ID_IND == 'Y' %},SRC_ID{% endif %}
+		)
+PRIMARY INDEX ( STYL_ORIN )
+;

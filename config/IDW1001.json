@@ -1,0 +1,47 @@
+{
+    "JOB": "IDW1001",
+    "SYSTEM": "IDW",
+    "VALID_LOGICAL_DEL" : "Y",
+    "VALID_COLLECT_STATS" : "Y",
+    "TRANS_STEP_NO" : "200",
+    "VALID_STEP_NO" : "300",
+    "TARGET_STEP_NO" : "400",
+    "PROJECT": {
+        "DATE": "2021-09-21",
+        "TEAM": "BOBS TEAM",
+        "COMPANY" :"The Big Company",
+        "PURPOSE" : "The Big Job"
+    },
+    "TARGET": {
+        "DATABASE": "IDW",
+        "TABLE": "LOC",
+        "FILE_ID_IND": "Y",
+        "SRC_ID_IND" : "Y",
+        "COLUMNS": {
+            "LOC_WID": {
+                "NULLABLE": "N",
+                "TKEY" : "Y",
+                "PINDEX" : "Y",
+                "DATATYPE" : "BIGINT"
+            },
+            "LOC_SBTYPE_CD": {
+                "NULLABLE": "N",
+                "TKEY" : "Y",
+                "PINDEX" : "Y",
+                "DATATYPE" : "VARCHAR(30)"
+            },
+            "LOC_ID": {
+                "NULLABLE": "N",
+                "TKEY" : "N",
+                "PINDEX" : "N",
+                "DATATYPE" : "VARCHAR(30)"
+            },
+            "LOC_NAME": {
+                "NULLABLE": "Y",
+                "TKEY" : "N",
+                "PINDEX" : "N",
+                "DATATYPE" : "VARCHAR(100)"
+            }
+        }
+    }
+}

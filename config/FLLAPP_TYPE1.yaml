@@ -1,0 +1,51 @@
+PATTERN : "FLLAPP_TYPE1"
+BUILD:
+  TEMPLATES:
+    FullApplyJobs:
+      TYPE: "SIMPLE"
+      FILENAME_TEMPLATE: "FLLAPP_JOB.job.filename.jinja"
+      TEMPLATE: "FLLAPP_JOB.job.jinja"
+    FullApplyValidStep:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "FULL_APPLY_VALID.filename.jinja"
+      TEMPLATE: "FULL_APPLY_VALID.sql.jinja"
+    FullApplyTargetStep:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "FULL_APPLY_TARGET.filename.jinja"
+      TEMPLATE: "FULL_APPLY_TARGET.sql.jinja"
+    FullApplyTransStep:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "FULL_APPLY_TRANS.filename.jinja"
+      TEMPLATE: "FULL_APPLY_TRANS.sql.jinja"
+    Target_Table:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "TARGET_TABLE.ddl.filename.jinja"
+      TEMPLATE: "TARGET_TABLE.ddl.jinja"
+    TargetC_Table:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "TARGET_TABLE_C.ddl.filename.jinja"
+      TEMPLATE: "TARGET_TABLE_C.ddl.jinja"
+    Target_VView:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "TARGET_VVIEW.ddl.filename.jinja"
+      TEMPLATE: "TARGET_VVIEW.ddl.jinja"
+    TargetC_VView:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "TARGET_VVIEW_C.ddl.filename.jinja"
+      TEMPLATE: "TARGET_VVIEW_C.ddl.jinja"
+    Target_AView:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "TARGET_AVIEW.ddl.filename.jinja"
+      TEMPLATE: "TARGET_AVIEW.ddl.jinja"
+    TargetC_AView:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "TARGET_AVIEW_C.ddl.filename.jinja"
+      TEMPLATE: "TARGET_AVIEW_C.ddl.jinja"
+    Target_CView:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "TARGET_CVIEW.ddl.filename.jinja"
+      TEMPLATE: "TARGET_CVIEW.ddl.jinja"
+    TargetC_CView:
+      TYPE: "SIMPLE"      
+      FILENAME_TEMPLATE: "TARGET_CVIEW_C.ddl.filename.jinja"
+      TEMPLATE: "TARGET_CVIEW_C.ddl.jinja"

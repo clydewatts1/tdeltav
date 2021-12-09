@@ -1,0 +1,10 @@
+JOB_ID,JOB_DESC,RUN_ID,JOB_PRI_IND,PRIRI_DTL_DESC,BUSN_CNTL
+{%- for job, value in TASK.DATAMOVER.JOBS.items() %}
+{%- if value.TYPE == "DMV" %}
+{{job}},Data Mover {{value.DATABASE}} from Citywest to Ballycoolin,0,0,Resolve ASAP,Fujitsu Support: G09D-TeradataRDBA@fujitsu.com
+{%- elif value.TYPE == "DMB" %}
+{{job}},Data Mover {{value.DATABASE}} from Ballycoolin to Citywest,0,0,Resolve ASAP,Fujitsu Support: G09D-TeradataRDBA@fujitsu.com
+{%- elif value.TYPE == "DMM" %}
+{{job}},Data Mover to identify start or end of  process {{value.DATABASE}},0,0,Resolve ASAP,Fujitsu Support: G09D-TeradataRDBA@fujitsu.com
+{%- endif %}
+{%- endfor %} 

@@ -1,0 +1,336 @@
+{% include 'JOB_HEADER.job.jinja' %}
+FPATH=$FPATH:$HOME/includes
+JOB=EXT1016
+GROWTIME=1
+ERRORLIMIT=1
+RAW_FILE_PREFIX="EL*MOSCA*"
+NUMFILES=1
+FILEWAIT_TIME=1
+## job specific
+##
+EXCEL2CSV="python $HOME/steps/EXT1016.py"
+
+
+# Modified RAW DIR
+RAW_DIR_DEFAULT=$RAW_DIR
+PARENTDIR="$(dirname "$RAW_DIR_DEFAULT")"
+#Raw file is still in RTL as this is where the original job was loading from.
+#RAW_DIR=$PARENTDIR/RTL/
+
+
+
+# Initialise varaibles
+SKIP_STEPS_CONTROL=1
+INSERTED_STAGING=0
+REJECTED_STAGING=0
+DUPLICATE_STAGING=0
+INSERTED_TARGET=0
+REJECTED_TARGET=0
+DUPLICATE_TARGET=0
+RAW_FILE_VAR_LIST=0
+# Load parameters
+DELIMITER=","
+tjc_stepout -e
+tjc_onerror "tjc_alert -u '${LOGON}' -s '${SERVER}' -G TJC_${INSTANCE}_ALERT"
+tjc_ontimeout "tjc_alert -u '${LOGON}' -s '${SERVER}' -G TJC_${INSTANCE}_ALERT  > /dev/null 2>&1"
+
+# Create work file for raw file list
+RAW_FILE_LIST=$(tjc_workfile -c RAW_FILE_LIST)
+# Create work file for list of converted csv files
+RAW_CSV_FILE_LIST=$(tjc_workfile -c RAW_CSV_FILE_LIST)
+# Create temporary file for control raw data
+RAW_FILE_PATTERN=${RAW_FILE_PREFIX:?}".xls"
+
+#
+
+#-------------------------------------------------------------------------------------------
+# Function : ConvertToCSV
+# Description : Takes a Excel file and converts it into a csv
+#             : Allows multiple files at one
+#-------------------------------------------------------------------------------------------
+
+
+ConvertExcelToCSV()
+{
+  STATUS=0
+  # Clear file
+  >${RAW_CSV_FILE_LIST:?}
+  # Loop thru file list
+  cat "${RAW_FILE_LIST:?}" | while read FILE
+  do
+  # convert excel file name to csv - expects xls name
+  CSV="$(echo -n "${FILE}" | sed -e 's/\.xls/.csv/g')"
+  echo $CSV >> ${RAW_CSV_FILE_LIST:?}
+  # convert excel file data to csv file
+  #  add file name and line number to each line + delimiter at last line
+	${EXCEL2CSV} --excel="$FILE" --csv="$CSV" --delimiter_last=True
+	#--add_file_name=EXCEL --add_line_no=True
+  # cat csv to raw file , so we can load one file . could use a list of files.
+  done
+  STATUS=$(( STATUS != 0 || $? != 0 ))
+  [[ ${STATUS:?} = 0 ]]
+
+  
+  echo $RAW_CSV_FILE_LIST
+}
+
+#-------------------------------------------------------------------------------------------
+# Function : MvFiles
+# Description : This will move the excel and csv files to the archive directory
+#-------------------------------------------------------------------------------------------
+
+MvFiles()
+{
+  cat "${RAW_FILE_LIST:?}" \
+  | while read FILE
+  do
+    # Get file name 
+    MV_FILENAME=$(echo ${FILE##*/}|sed -e "s/\.xls/.${RUNDATE}.xls/")
+	echo moving ${FILE:?} ${ARCHIVE_DIR:?}/${MV_FILENAME:?}
+	mv "${FILE:?}" ${ARCHIVE_DIR:?}/"${MV_FILENAME:?}"
+  done
+  cat "${RAW_CSV_FILE_LIST:?}" \
+  | while read FILE
+  do
+    CSV_FILENAME=$(echo ${FILE}|sed -e "s/\.xls/.${RUNDATE}.csv/") 
+    MV_FILENAME=$(echo ${FILE##*/}|sed -e "s/\.xls/.${RUNDATE}.csv/")
+    echo moving ${CSV_FILENAME:?} ${ARCHIVE_DIR:?}/${MV_FILENAME:?}
+    mv "${CSV_FILENAME:?}" ${ARCHIVE_DIR:?}/"${MV_FILENAME:?}"
+  done
+}
+
+{% include 'JOB_LOAD_START.job.jinja' %}
+
+{% include 'JOB_GETRUNID.job.jinja' %}
+
+#-------------------------------------------------------------------------------
+# Step 005 : Get the RUNDATE parameter
+#-------------------------------------------------------------------------------
+step 005 Bteq -s "${SERVER:?}" -u "${LOGON:?}" -v MET_V="${MET_V}" -v JOB="${JOB:?}" \
+              -v PARAM_TXT="RUNDATE" -v PARAM_FORMAT="YYYY-MM-DD" \
+              -v PARAM_COL="PARAM_DT" -v PARAM_TYPE="DATE" \
+              -v STEP_NO="005" -v INSTANCE="${INSTANCE:?}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/GetParam.sql
+
+RUNDATE=$(tjc_stepout -l | awk '/^PARAMVALUE/ { print $2 }')
+echo $RAW_DIR
+
+
+#-------------------------------------------------------------------------------
+# Step 021 : Wait File : wait for files and generate list
+#          : -c continue after timeout
+#          : This means no rows will be loaded which is OK 
+#-------------------------------------------------------------------------------
+
+step 021 tjc_waitfile -d ${RAW_DIR:?} -g ${GROWTIME:?} -n ${NUMFILES:?} -p "${RAW_FILE_PATTERN}" -c "${FILEWAIT_TIME:?}"
+
+# Populate file list - only get
+tjc_stepout -l   >> ${RAW_FILE_LIST:?}
+RAW_FILE_VAR_LIST=$(cat ${RAW_FILE_LIST:?} | tr '\n' ' ')
+RAW_FILE_VAR_LIST=${RAW_FILE_VAR_LIST:-" "}
+echo CLW RAW_FILE_VAR_LIST $RAW_FILE_VAR_LIST
+
+
+#---------------------------------------------------------------------------------
+# Step 22 : Skip to 800 if no files present in list
+#---------------------------------------------------------------------------------
+export SKIP_STEPS_CONTROL=$(wc -l ${RAW_FILE_LIST:?} | cut -f1 -d" ")
+echo SKIP_STEPS_CONTROL=${SKIP_STEPS_CONTROL}
+tjc_branch -s 1 -t 800
+step 022 [ ${SKIP_STEPS_CONTROL:?} -ne 0 ]
+tjc_branch -r
+
+#---------------------------------------------------------------------------------
+# Step 023 : Convert all the excel files in the RAW_FILE_LIST to csv
+#          : Also create a list of all the csv files in RAW_CSV_FILE_LIST
+#---------------------------------------------------------------------------------
+
+step 023 ConvertExcelToCSV
+
+
+#-------------------------------------------------------------------------------
+# Step 030 : insert 1 row in file control for every file received
+#-------------------------------------------------------------------------------
+
+step 030 Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v STEP_NO="030" \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v RAW_CSV_FILE_LIST="${RAW_FILE_VAR_LIST:?}" \
+              -v RAW_DIR="${RAW_DIR:?}" \
+              -v RAW_FILE_PATTERN="${RAW_FILE_PATTERN:?}" \
+              -v RUN_ID="${RUN_ID:?}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/FileControlInsert.sql
+
+#-------------------------------------------------------------------------------
+# Step 040 : Prepare fastload ( TPT )
+#-------------------------------------------------------------------------------
+
+step 040 Bteq -s "${SERVER:?}" -u "${LOGON:?}" -v WRK_T="${WRK_T}" \
+              -v STG_T="${STG_T:?}" \
+              -v STEP_NO=040 \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/PreTPTLoad.sql
+
+#--------------------------------------------------------------------------------------
+# Step 045 : remove checkpoint file
+#--------------------------------------------------------------------------------------
+
+step 045 TPT_ResetCheckpoint "${INSTANCE:?}.${JOB}.050"
+
+#--------------------------------------------------------------------------------------
+# Step 050 : TPT Load  -- if failed start from step 040
+#--------------------------------------------------------------------------------------
+## Waiting for test files
+step 050 Tbuild -s "${SERVER:?}" -u "${LOGON:?}" -v WRK_T="${WRK_T}" \
+              -v STG_T="${STG_T:?}" \
+              -v ARCHIVE_DIR="${ARCHIVE_DIR:?}" \
+              -v RAW_DIR="${RAW_DIR}" \
+              -v RAW_CSV_FILE_LIST="${RAW_CSV_FILE_LIST:?}" \
+              -v STEP_NO=050 \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v JOB="${JOB:?}" \
+              -v ERRORLIMIT="${ERRORLIMIT:?}"\
+              -v DELIMITER="${DELIMITER:?}"\
+              -- -j "${INSTANCE:?}.${JOB}.050"\
+              ${STEP_DIR:?}/${JOB}.050.RAW.tpt
+
+
+# Check if there are any files that we loaded
+# no files in raw file means steps skipped
+if [ ${SKIP_STEPS_CONTROL:?} -ne 0 ]
+then
+echo tpt parameter set section SKIP_STEPS_CONTROL=${SKIP_STEPS_CONTROL:?}
+INSERTED_STAGING=$(tjc_stepout -l | awk '/\$LOAD: Total Rows Applied:/ {   print $5 }')
+INSERTED_STAGING=${INSERTED_STAGING:-0}
+DUPLICATE_STAGING=$(tjc_stepout -l | awk '/\$LOAD: Total Duplicate Rows:/ {   print $5 }')
+DUPLICATE_STAGING=${DUPLICATE_STAGING:-0}
+ERROR_TABLE_1_STAGING=$(tjc_stepout -l | awk '/\$LOAD: Total Rows in Error Table 1:/ {   print $8 } ')
+ERROR_TABLE_1_STAGING=${ERROR_TABLE_1_STAGING:-0}
+ERROR_TABLE_2_STAGING=$(tjc_stepout -l | awk '/\$LOAD: Total Rows in Error Table 2:/ {   print $8 } ')
+ERROR_TABLE_2_STAGING=${ERROR_TABLE_2_STAGING:-0}
+REJECTED_STAGING=$((${ERROR_TABLE_1_STAGING}+${ERROR_TABLE_1_STAGING}))
+else
+echo skips tpt parameter set section SKIP_STEPS_CONTROL=${SKIP_STEPS_CONTROL:?}
+wc -l ${RAW_FILE_LIST} | cut -f1 -d" "
+fi
+
+
+#--------------------------------------------------------------------------------------
+# Step 055 : Check Load for errors
+#--------------------------------------------------------------------------------------
+
+step 055 Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v STEP_NO=055 \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v WRK_T="${WRK_T}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/CheckError_Load.sql
+
+
+
+#--------------------------------------------------------------------------------------
+# Step 090 : update file control based on Raw Table
+#--------------------------------------------------------------------------------------              
+step 090 Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v STEP_NO="090" \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v RUN_ID="${RUN_ID:?}" \
+              -v STG_T="${STG_T:?}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/FileControlUpdate.sql
+			  
+#--------------------------------------------------------------------------------------
+# Step 095 : Check for inserted records
+#-------------------------------------------------------------------------------------- 
+
+if [ ${INSERTED_STAGING:?} == 0 ]
+then 
+echo 'No rows loaded to Staging'
+SKIP_STEPS_CONTROL=0
+fi
+			  	
+#--------------------------------------------------------------------------------------
+# Step 097 : Skip steps if no records inserted in target
+#-------------------------------------------------------------------------------------- 
+
+tjc_branch -s 1 -t 200
+step 097 [ ${SKIP_STEPS_CONTROL:?} -ne 0 ]
+
+#--------------------------------------------------------------------------------------
+# Step 098 : Raise Warning
+#--------------------------------------------------------------------------------------
+		
+RaiseWarningAlert()
+{
+echo -n "Warning : File received but no records loaded to staging. This is likely because the incoming file had no Detail records"|tjc_alert -u "${LOGON:?}" -s "${SERVER}" -G TJC_${INSTANCE}_INFO
+return $?
+}
+
+if [ ${SKIP_STEPS_CONTROL:?} -eq 0 ]
+then 
+RaiseWarningAlert
+fi
+tjc_branch -r
+				
+#------------------------------------------------------------------------------------
+# Step 100 : Transform
+#------------------------------------------------------------------------------------
+
+step 100 Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v MET_V="${MET_V}" \
+              -v STEP_NO="100" \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v TMP_T="${TMP_T:?}" \
+              -v STG_T="${STG_T:?}" \
+              -v SRCI_V="${SRCI_V:?}" \
+              -v RUN_ID="${RUN_ID:?}"\
+              -v JOB=${JOB:?} ${STEP_DIR:?}/${JOB}.100.TRANS.sql
+
+#------------------------------------------------------------------------------------
+# Step 120 : Target
+#------------------------------------------------------------------------------------
+
+step 120 Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v MET_V="${MET_V}" \
+              -v STEP_NO="120"\
+              -v INSTANCE="${INSTANCE:?}" \
+              -v TMP_T="${TMP_T:?}" \
+              -v STG_T="${STG_T:?}" \
+              -v SRCI_V="${SRCI_V:?}" \
+              -v SRCI_T="${SRCI_T:?}" \
+              -v RUN_ID="${RUN_ID}" \
+              -v RUNDATE="${RUNDATE:?}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/${JOB}.120.TARGET.sql
+
+# Skip parameter setting section if
+# this is to ensure that this is skipped if tjc_branch kicks in
+if [ ${SKIP_STEPS_CONTROL:?} -ne 0 ]
+then
+echo target parameters set SKIP_STEPS_CONTROL=${SKIP_STEPS_CONTROL:?}
+INSERTED_TARGET=$(tjc_stepout -l | awk '/^ ... Insert completed. / { if ($4 == "No") rows = 0; else if ($4 == "One") rows = 1; else rows = $4 } END { print rows }')
+INSERTED_TARGET=${INSERTED_TARGET:-0}
+else
+echo NOT target parameters set SKIP_STEPS_CONTROL=${SKIP_STEPS_CONTROL:?}
+fi
+
+#--------------------------------------------------------------------------------------
+# Step 200 : Move data files
+#--------------------------------------------------------------------------------------
+
+step 200 MvFiles
+
+#--------------------------------------------------------------------------------------
+# Step 800 : Run SetParam to increment RUNDATE
+#--------------------------------------------------------------------------------------
+
+
+step 800 Bteq -s "${SERVER:?}" -u "${LOGON:?}" -v MET_V="${MET_V}" \
+              -v PARAM_COL="PARAM_DT" -v NEW_PARAM_VALUE="PARAM_DT+1" \
+              -v PARAM_TXT="RUNDATE" \
+              -v STEP_NO="800" -v INSTANCE="${INSTANCE:?}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/SetParam.sql
+
+
+
+{% include 'JOB_LOAD_STOP.job.jinja' %}
+
+
+

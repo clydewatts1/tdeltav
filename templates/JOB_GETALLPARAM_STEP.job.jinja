@@ -1,0 +1,27 @@
+  
+#-------------------------------------------------------------------------------
+# Step 010 : Get all parameters - JOB - First time 
+#-------------------------------------------------------------------------------
+
+# Set default time parameter
+JOB_PARAM_TS_FORMAT=${JOB_PARAM_TS_FORMAT:="YYYY-MM-DD HH:MI:SS"}
+# Set Work file
+JOB_PARAM_WORKFILE=$(tjc_workfile -c JOB_PARAM)
+step 010 Bteq -s "${SERVER:?}" -u "${LOGON:?}" -v MET_V="${MET_V}" \
+              -v JOB_PARAM_DT_FORMAT="${JOB_PARAM_DT_FORMAT:=YYYY-MM-DD}"\
+              -v JOB_PARAM_DT_ALT_FORMAT="${JOB_PARAM_DT_FORMAT:=IGNORE}"\
+              -v JOB_PARAM_TS_FORMAT="${JOB_PARAM_TS_FORMAT}"\
+              -v JOB_PARAM_INT_FORMAT="${JOB_PARAM_INT_FORMAT:=TM}"\
+              -v STEP_NO="010" -v INSTANCE="${INSTANCE:?}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/GetALLParams.sql
+              
+              
+tjc_stepout -l|grep ^\!|cut -d\! -f2 >${JOB_PARAM_WORKFILE}
+
+# Set environment parameters
+. ${JOB_PARAM_WORKFILE}
+
+# Overwrite parameters with command line
+export $(MY_TMP=${TJC_OPTIONS//-v };echo ${MY_TMP//\"})
+
+

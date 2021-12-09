@@ -1,0 +1,12 @@
+#------------------------------------------------------------------------------------
+# Step {{TASK.TARGET_STEP.STEP_NO}} : Valid - {{TASK.TARGET_STEP.STEP_NAME}}
+#------------------------------------------------------------------------------------
+step {{TASK.TARGET_STEP.STEP_NO}} Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v MET_V="${MET_V}" \
+              -v STEP_NO="200" \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v TMP_T="${TMP_T:?}" \
+              -v STG_T="${STG_T:?}" \
+              -v RUN_ID="${RUN_ID:?}"\
+			  -v RUNDATE="${RUNDATE:?}"\
+              -v JOB=${JOB:?} ${STEP_DIR:?}/${JOB}.{{TASK.TARGET_STEP.STEP_NO}}.VALID.sql

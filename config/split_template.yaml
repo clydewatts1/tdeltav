@@ -1,0 +1,11 @@
+PATTERN : "FULLAPP"
+BUILD:
+  TEMPLATES:
+    FullApplyTransStep:
+      TYPE: "LOOP"
+      FILENAME_TEMPLATE: "LOOP.txt.filename.jinja"
+      TEMPLATE: "LOOP.txt.jinja"
+      LOOPON: 
+        - "LEVEL1"
+        - "LEVEL2"
+ 

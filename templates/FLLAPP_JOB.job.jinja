@@ -1,0 +1,36 @@
+{% include 'JOB_HEADER.job.jinja' %}
+
+FPATH=$FPATH:$HOME/includes
+JOB={{TASK.JOB}}
+
+tjc_stepout -e
+
+
+# Initialise varaibles
+INSERTED_STAGING=0
+REJECTED_STAGING=0
+DUPLICATE_STAGING=0
+INSERTED_TARGET=0
+REJECTED_TARGET=0
+DUPLICATE_TARGET=0
+
+
+
+{% include 'JOB_LOAD_START.job.jinja' %}
+
+{% include 'JOB_GETRUNID.job.jinja' %}
+
+{% include 'JOB_GETALLPARAM_STEP.job.jinja' %}
+			  
+{% include 'JOB_TRANS_STEP.job.jinja' %}
+
+{% include 'JOB_VALID_STEP.job.jinja' %}
+
+{% include 'JOB_TARGET_STEP.job.jinja' %}
+			  
+{% include 'JOB_TARGET_STEP.job.jinja' %}
+
+{% include 'JOB_SETRUNDATE_STEP.job.jinja' %}
+
+{% include 'JOB_LOAD_STOP.job.jinja' %}
+

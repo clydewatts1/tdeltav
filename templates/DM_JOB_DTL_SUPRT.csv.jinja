@@ -1,0 +1,4 @@
+JOB_ID,SUPRT_ORG_CD,ACTV_IND,JOB_TYPE_CD,JOB_AREA_CD,JOB_AREA_SUB_CD
+{%- for job, value in TASK.DATAMOVER.JOBS.items() %}
+{{job}},F,Y,DM,SYSTEM,CONTROL
+{%- endfor %} 

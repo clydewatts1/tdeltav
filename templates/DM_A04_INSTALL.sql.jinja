@@ -1,0 +1,50 @@
+/*
+# ===============================================================================
+#                      {{TASK.PROJECT.COMPANY}}
+#
+# ===============================================================================
+# ===============================================================================
+# File Name           : {{TASK.CHANGE_CONTROL.RFC}}_JOB_DTL.csv
+# Pattern             : Data Mover Delete
+# Purpose             : {{TASK.PROJECT.PURPOSE}}
+# Author              : {{TASK.PROJECT.TEAM}}
+# File Type           : SQL
+# Creation Date       : {{TASK.PROJECT.DATE}}
+# Pending                                 :
+# Version             : Initial Version
+# -------------------------------------------------------------------------------
+# Change History :
+# Ver  | Date        |  Modified By           |  Change Description
+# -------------------------------------------------------------------------------
+# 1.0  | {{TASK.PROJECT.DATE}}   |  {{TASK.PROJECT.TEAM}}         |  INITIAL CODE
+#
+# ====
+
+/* Note : Manually applied on both production and dr */
+{%- for job, value in TASK.DATAMOVER.JOBS.items() %}
+{%- if value.TYPE == "DMV" %}
+{%- elif value.TYPE == "DMB" %}
+{%- elif value.TYPE == "DMM" %}
+
+INSERT INTO DWA04T_DR_MET.DR_JOB_DTL
+(
+JOB_ID
+,JOB_DESC
+,RUN_ID
+,JOB_PRIR_IND
+,PRIR_DTL_DESC
+,BUSN_CNTCT
+)
+VALUES
+(
+'{{job}}'
+,'Data Mover marker job to identify the start of processing  for jobs relating to {{TASK.PROJECT.SYSTEM_DESC}}'
+,0
+,3
+,'Resolve next day'
+,'Fujitsu Support : G09D-TeradataRDBA@fujitsu.com'
+)
+;
+
+{%- endif %}
+{%- endfor %} 

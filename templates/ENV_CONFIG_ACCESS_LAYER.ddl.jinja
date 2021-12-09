@@ -1,0 +1,38 @@
+ /*
+# ===============================================================================
+#                      {{TASK.PROJECT.COMPANY}}
+#
+# ===============================================================================
+# ===============================================================================
+# Script Name         : {{TASK.RFC}}_ENV_CONFIG.ddl
+# Purpose             :	Objectivity Environment User
+# Author              : {{TASK.PROJECT.TEAM}}
+# File Type           : DDL
+# Creation Date       : {{TASK.PROJECT.DATE}}
+# Pending 		      :
+# Version             : Initial
+# -------------------------------------------------------------------------------
+# Change History :
+# Ver  | Date        	|  	Modified By           |  Change Description
+# -------------------------------------------------------------------------------
+# 1.0   {{TASK.PROJECT.DATE}}      {{TASK.PROJECT.TEAM}}           INITIAL
+#
+# ===============================================================================
+*/
+
+/* Create Environment */
+
+/* This will create the roles */
+
+
+ CALL DBADMIN.CREATE_ENVIRONMENT_II('{{TASK.ENV_CONFIG.RFC}}','{{TASK.ENV_CONFIG.RFC}}','{{TASK.ENV_CONFIG.RFC}}',0,'N',RESULTMSG);   
+   
+ 
+ 
+ /* This will create the users */
+ 
+ CALL DBADMIN.ENV_CREATE_BATCH_USERS('{{TASK.ENV_CONFIG.ACC_SYS_ENV}}','{{TASK.ENV_CONFIG.ACC_ENV}}','Y',RESULTMSG);
+ 
+ /* This will Return the user Databases */
+ 
+EXECUTE DBADMIN.ENV_CREATE_BATCH_USER_REPORT('{{TASK.ENV_CONFIG.RFC}}');

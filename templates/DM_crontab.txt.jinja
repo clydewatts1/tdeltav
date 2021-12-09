@@ -1,0 +1,11 @@
+####{{TASK.PROJECT.SYSTEM}} start#####
+/* Note : Manually applied on both production and dr */
+{%- for job, value in TASK.DATAMOVER.JOBS.items() %}
+{%- if value.TYPE == "DMV" %}
+{{value.CRON_SCHEDULE}}   $HOME/bin/ENV_DM -i P01 -s DMV -u DM_PD -U_DM_DR tjc_run -f -J P01_{{job}} -v JOB={{job}} $HOME/jobs/DMV1000.job #       value.DATABASE
+{%- elif value.TYPE == "DMB" %}
+{%- elif value.TYPE == "DMM" %}
+{{value.CRON_SCHEDULE}}  $HOME/bin/ENV_DM -i A04 -s DMM -u DR_MET tjc_run -v JOB_NAME="{{job}}" -v SCHEDULE_INSTANCE="P01" -v PROCESS_NAME="{{TASK.PROJECT.SYSTEM}}" -J A04_DMM9002 -f $HOME/jobs/DMM9000.job
+{%- endif %}
+{%- endfor %} 
+###{{TASK.PROJECT.SYSTEM}} end#######################

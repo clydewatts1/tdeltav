@@ -1,0 +1,133 @@
+/*
+# ===============================================================================
+#                      {{TASK.PROJECT.COMPANY}}
+#
+# ===============================================================================
+# ===============================================================================
+# File Name           : {{TASK.JOB}}.{{TASK.TARGET_STEP.STEP_NO}}.TARGET.sql
+# Pattern             : FULL APPLY
+# Purpose             : {{TASK.PROJECT.PURPOSE}}
+# Author              : {{TASK.PROJECT.TEAM}}
+# File Type           : SQL
+# Creation Date       : {{TASK.PROJECT.DATE}}
+# Pending                                 :
+# Version             : Initial Version
+# -------------------------------------------------------------------------------
+# Change History :
+# Ver  | Date        |  Modified By           |  Change Description
+# -------------------------------------------------------------------------------
+# 1.0  | {{TASK.PROJECT.DATE}}   |  {{TASK.PROJECT.TEAM}}         |  INITIAL CODE
+#
+# ===============================================================================
+*/
+.width 1000
+ 
+/* Set query band */
+SET QUERY_BAND = 'ApplicationName=TJC;Group=IT;JobId=${JOB};JobSeq=${STEP_NO};Instance=${INSTANCE};' UPDATE FOR SESSION
+;
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101
+ 
+BEGIN TRANSACTION
+;
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101
+ 
+LOCK TABLE DW${INSTANCE}V_{{TASK.TARGET.DATABASE}}.{{TASK.TARGET.TABLE}} FOR WRITE
+;
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101
+/*
+For closing rows
+*/
+ 
+UPDATE TRG
+FROM DW${INSTANCE}V_{{TASK.TARGET.DATABASE}}.{{TASK.TARGET.TABLE}} AS TRG
+    ,DW${INSTANCE}T_TMP_EXT.${JOB}_VALID AS VALID
+SET END_DT        = VALID.START_DT - 1
+   ,UPDATE_RUN_ID = VALID.RUN_ID
+   ,UPDATE_JOB_ID = VALID.JOB_ID
+WHERE  
+    TRG.END_DT = DATE '3500-12-31'
+    {%- for key, value in TASK.TARGET.COLUMNS.items() if value.TKEY == "Y" %}
+    {% if loop.first%} AND {% else %} AND {% endif %}( VALID.{{key}} = TRG.{{key}} )
+    {%- endfor %} 
+;
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101
+ 
+ 
+/*
+Insert all new rows as well as Logically deleted rows worked out in the previous step
+*/
+ 
+INSERT INTO DW${INSTANCE}V_{{TASK.TARGET.DATABASE}}.{{TASK.TARGET.TABLE}}
+(
+    {%- for key, value in TASK.TARGET.COLUMNS.items() %}
+    {% if loop.first%} {% else %},{% endif %}{{key}}
+    {%- endfor %}
+    {% if TASK.TARGET.FILE_ID_IND == 'Y' %},FILE_ID{% endif %}
+    {% if TASK.TARGET.SRC_ID_IND == 'Y' %},SRC_ID{% endif %}
+    ,START_DT
+    ,END_DT
+    ,RECORD_DEL_IND
+    ,JOB_ID
+    ,RUN_ID
+    ,UPDATE_JOB_ID
+    ,UPDATE_RUN_ID             
+)
+SELECT                               
+               VALID.ORG_UNIT                     
+               ,VALID.INVC_TYPE                    
+               ,VALID.INVC_NUM                     
+               ,VALID.CREATED_DT                   
+               ,VALID.RSRC_GRP                     
+               ,VALID.VNDR_NAME                    
+               ,VALID.INVC_DT                      
+               ,VALID.WORK_ORD_NUM                 
+               ,VALID.WORK_ORD_REF                 
+               ,VALID.WORK_ORD_CMPLT_DT            
+               ,VALID.LOC_NAME                     
+               ,VALID.TYPE_OF_WORK_ORD             
+               ,VALID.STATUS                       
+               ,VALID.IS_CPTL                      
+               ,VALID.TOTAL_NET_AMT                 
+               ,VALID.VAT_AMT                      
+               ,VALID.GRS_TOTAL_AMT                
+               ,VALID.APRVD_DT                     
+               ,VALID.VLDT_DT                      
+               ,VALID.PYMT_SBMN_DT                 
+               ,VALID.LST_ACTN_DT                  
+               ,VALID.PYMT_SBMN_STATUS             
+               ,VALID.NO_FUR_INVC                  
+               ,VALID.CREATED_BY_PRFL              
+               ,VALID.NOTES                        
+               ,VALID.WORK_ORD_CTGY                
+               ,VALID.WORK_ORD_SUBCTGY             
+               ,VALID.WORK_ORD_EQPNT_TYPE          
+               ,VALID.SPLR_ID                      
+               ,VALID.SITE_ID                      
+               ,VALID.LOC_WID                      
+               ,VALID.STR_NUM                      
+               ,VALID.GL_CD                        
+               ,VALID.PRJ_CD                       
+               ,VALID.DEP_CD                       
+               ,VALID.FILE_ID                      
+               ,VALID.SRC_ID                       
+               ,VALID.START_DT                     
+               ,VALID.END_DT                       
+               ,VALID.RECORD_DEL_IND               
+               ,VALID.JOB_ID                       
+               ,VALID.RUN_ID                       
+               ,VALID.UPDATE_JOB_ID                
+               ,VALID.UPDATE_RUN_ID  
+              
+FROM    DW${INSTANCE}T_TMP_{{TASK.SYSTEM}}.${JOB}_VALID AS VALID
+; 
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101
+ 
+END TRANSACTION
+;
+ 
+.IF ERRORCODE <> 0 THEN .QUIT 101

@@ -1,0 +1,9 @@
+JOB_ID,WAIT_FOR,WAIT_ORDER,WAIT_TIME,WAIT_TYPE
+{%- for job, value in TASK.DATAMOVER.JOBS.items() %}
+{%- if value.TYPE == "DMV" %}
+{{job}},{{value.DEPENDENCY}},1,60,t
+{%- elif value.TYPE == "DMB" %}
+{%- elif value.TYPE == "DMM" %}
+{{job}},{{value.DEPENDENCY}},1,60,t
+{%- endif %}
+{%- endfor %} 

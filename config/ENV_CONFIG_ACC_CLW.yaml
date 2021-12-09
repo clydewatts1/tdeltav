@@ -1,0 +1,11 @@
+JOB: IDW1001
+PROJECT:
+  COMPANY: The Big Company
+  DATE: '2021-09-21'
+  PURPOSE: The Big Job
+  TEAM: BOBS TEAM
+ENV_CONFIG:
+  ACC_NAME: "CLW"
+  ACC_DESC: "Charly Leeman Whisky"
+  ACC_SYS_ENV:  "DW"
+  ACC_ENV:  "DWD03"

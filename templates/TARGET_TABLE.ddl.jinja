@@ -1,0 +1,47 @@
+/*
+/*
+# ===============================================================================
+#                      {{TASK.PROJECT.COMPANY}}
+#
+# ===============================================================================
+# ===============================================================================
+# File Name           : {{TASK.TARGET.TABLE.lower()}}_t.ddl
+# Pattern             : FULL APPLY
+# Purpose             : Target table
+# Author              : {{TASK.PROJECT.TEAM}}
+# File Type           : SQL
+# Creation Date       : {{TASK.PROJECT.DATE}}
+# Pending                                 :
+# Version             : Initial Version
+# -------------------------------------------------------------------------------
+# Change History :
+# Ver  | Date        |  Modified By           |  Change Description
+# -------------------------------------------------------------------------------
+# 1.0  | {{TASK.PROJECT.DATE}}   |  {{TASK.PROJECT.TEAM}}         |  INITIAL CODE
+#
+# ===============================================================================
+*/
+CREATE MULTISET TABLE DW${INSTANCE}T_{{TASK.TARGET.DATABASE}}.{{TASK.TARGET.TABLE}}
+     (
+    {%- for key, value in TASK.TARGET.COLUMNS.items() %}
+    {% if loop.first%} {% else %},{% endif %}{{key}} {{value.DATATYPE}} {%if value.NULLABLE == 'N'%} NOT NULL {% endif %} {{value.FORMAT}} {{value.COMPRESS}}
+    {%- endfor %}
+    {%- if TASK.TARGET.FILE_ID_IND == 'Y' %},FILE_ID{% endif %}
+    {%- if TASK.TARGET.SRC_ID_IND == 'Y' %},SRC_ID{% endif %}
+    ,START_DT DATE FORMAT 'YYYY-MM-DD' NOT NULL
+    ,END_DT DATE FORMAT 'YYYY-MM-DD' NOT NULL COMPRESS (DATE '3500-12-31')
+    ,RECORD_DEL_IND BYTEINT NOT NULL COMPRESS (0 ,1 )
+    ,JOB_ID CHAR(8) CHARACTER SET LATIN NOT CASESPECIFIC NOT NULL COMPRESS '{{TASK.JOB}}'
+    ,RUN_ID INTEGER NOT NULL
+    ,UPDATE_JOB_ID CHAR(8) CHARACTER SET LATIN NOT CASESPECIFIC COMPRESS '{{TASK.JOB}}'
+    ,UPDATE_RUN_ID INTEGER
+	)
+ 
+{% if TASK.TARGET.PI_TYPE == "NUPI" %}PRIMARY INDEX(
+{%- elif TASK.TARGET.PI_TYPE == "UPI" %}UNIQUE PRIMARY INDEX(
+{%- endif %} 
+    {%- for key, value in TASK.TARGET.COLUMNS.items() if value.PINDEX == "Y" %}
+    {% if loop.first%}{% else %},{% endif %}{{key}}
+    {%- endfor %}
+)
+;

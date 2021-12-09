@@ -1,0 +1,122 @@
+JOB: TBU1006
+PROJECT:
+  COMPANY: The Big Company
+  DATE: '2021-11-21'
+  PURPOSE: BUILD LFL STORE TABLE FOR LFL 2YLFL and 3YLFL
+  TEAM: TERADATA , GCC
+SYSTEM: TBU
+TARGET_STEP: 
+    STEP_NO: 400
+    STEP_NAME: Populate target TABLE
+VALID_STEP: 
+    STEP_NO: 300
+    STEP_NAME: Populate valid Table 
+    LOGIC_DEL: N
+    COLLECT_STATS: Y
+    LOGICAL_DEL: N
+
+TRANS_STEP:
+  - STEP_NO: 100
+    STEP_NAME: Eat PTSA
+    TABLE : TARGET
+  - STEP_NO: 110
+    STEP_NAME: Bombar Potato
+    TABLE : TARGET
+  - STEP_NO: 200
+    STEP_NAME: Populate trans Table
+    TABLE : TARGET
+TARGET:
+  DATABASE: ACC_TBU
+  TABLE: STR_LFL
+  PATH: "ACC"
+  PI_TYPE: "UPI"
+  COMMENT: "Table containing LFL per store per year for this year lfl , 2YLFL and 3 YLFL"
+  FILE_ID_IND: N
+  SRC_ID_IND: N
+  COLUMNS:
+    PMK_YR:
+      DATATYPE: INTEGER
+      NULLABLE: N
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "Primark Year"
+    WK_IN_YR:
+      DATATYPE: INTEGER
+      NULLABLE: N
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "Week in Year"
+    YR_WK:
+      DATATYPE: INTEGER
+      NULLABLE: N
+      PINDEX: Y
+      TKEY: Y
+      FORMAT: ""
+      COMMENT: "Year Week"
+    STR_NO:
+      DATATYPE: SMALLINT
+      NULLABLE: N
+      PINDEX: Y
+      TKEY: Y
+      FORMAT: ""
+      COMMENT: "Store Number"
+    LFL:
+      DATATYPE: BYTEINT
+      NULLABLE: N
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "Like for Like indicator"
+    LFL_2YLFL:
+      DATATYPE: BYTEINT
+      NULLABLE: N
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "LFL 2nd Year - Recalculated and addjusted for period"
+    LFL_3YLFL:
+      DATATYPE: BYTEINT
+      NULLABLE: N
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "LFL 3rd Year - Recalculated and addjusted for period"
+    LFL_LY:
+      DATATYPE: SMALLINT
+      NULLABLE: Y
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "LFL Last Year - only for year week"
+    LFL_L2Y:
+      DATATYPE: SMALLINT
+      NULLABLE: Y
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "LFL 2 Years ago - only for year week"
+    YR_PER:
+      DATATYPE: INTEGER
+      NULLABLE: N
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "Year Period"
+    LY_YR_PER:
+      DATATYPE: INTEGER
+      NULLABLE: N
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "Last Year Year Period"
+    LY2_YR_PER:
+      DATATYPE: INTEGER
+      NULLABLE: N
+      PINDEX: N
+      TKEY: N
+      FORMAT: ""
+      COMMENT: "2 Years ago Year Period"
+
+

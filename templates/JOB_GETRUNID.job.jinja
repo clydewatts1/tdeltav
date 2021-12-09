@@ -1,0 +1,11 @@
+#-------------------------------------------------------------------------------
+# Step 003 : Get the RUNID parameter
+#-------------------------------------------------------------------------------
+
+# need to grab the run id so we can append it to the report files to make it unique
+step 003 Bteq -s "${SERVER:?}" -u "${LOGON:?}" \
+              -v STEP_NO="003" -v INSTANCE="${INSTANCE:?}" \
+              -v MET_V="${MET_V:?}" -v INSTANCE="${INSTANCE:?}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/GetRunId.sql
+
+RUN_ID=$(tjc_stepout -l | awk '/^RUN_ID;/{print $2}')

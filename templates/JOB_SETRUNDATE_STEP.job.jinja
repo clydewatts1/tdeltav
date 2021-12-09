@@ -1,0 +1,11 @@
+#--------------------------------------------------------------------------------------
+# Step 800 : Run SetParam to increment RUNDATE
+#--------------------------------------------------------------------------------------
+
+
+step 800 Bteq -s "${SERVER:?}" -u "${LOGON:?}" -v MET_V="${MET_V}" \
+              -v PARAM_COL="PARAM_DT" -v NEW_PARAM_VALUE="PARAM_DT+${OFFSET_DT}" \
+              -v PARAM_TXT="RUNDATE" \
+              -v STEP_NO="800" -v INSTANCE="${INSTANCE:?}" \
+              -v JOB=${JOB:?} ${STEP_DIR:?}/SetParam.sql
+

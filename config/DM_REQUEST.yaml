@@ -1,0 +1,27 @@
+PATTERN : "DM_REQUEST"
+BUILD:
+  TEMPLATES:
+    JobDetail:
+      TYPE: "SIMPLE"
+      FILENAME_TEMPLATE: "DM_JOB_DTL.csv.filename.jinja"
+      TEMPLATE: "DM_JOB_DTL.csv.jinja"
+    JobDetailSupplemental:
+      TYPE: "SIMPLE"
+      FILENAME_TEMPLATE: "DM_JOB_DTL_SUPRT.csv.filename.jinja"
+      TEMPLATE: "DM_JOB_DTL_SUPRT.csv.jinja"
+    JobDetailParam:
+      TYPE: "SIMPLE"
+      FILENAME_TEMPLATE: "DM_JOB_PARAM.csv.filename.jinja"
+      TEMPLATE: "DM_JOB_PARAM.csv.jinja"
+    JobDetailLinkage:
+      TYPE: "SIMPLE"
+      FILENAME_TEMPLATE: "DM_JOB_LINKAGE.csv.filename.jinja"
+      TEMPLATE: "DM_JOB_LINKAGE.csv.jinja"
+    InstallA04:
+      TYPE: "SIMPLE"
+      FILENAME_TEMPLATE: "DM_A04_INSTALL.sql.filename.jinja"
+      TEMPLATE: "DM_A04_INSTALL.sql.jinja"
+    Crontab:
+      TYPE: "SIMPLE"
+      FILENAME_TEMPLATE: "DM_crontab.txt.filename.jinja"
+      TEMPLATE: "DM_crontab.txt.jinja"

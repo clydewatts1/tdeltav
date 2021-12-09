@@ -1,0 +1,13 @@
+
+step 900 Bteq -s "${SERVER:?}" -u "${LOGON:?}" -v MET_V="${MET_V}" \
+              -v INSERTED_STAGING="${INSERTED_STAGING}" \
+              -v REJECTED_STAGING="${REJECTED_STAGING}" \
+              -v DUPLICATE_STAGING="${DUPLICATE_STAGING}" \
+              -v INSERTED_TARGET="${INSERTED_TARGET}" \
+              -v REJECTED_TARGET="${REJECTED_TARGET}" \
+              -v DUPLICATE_TARGET="${DUPLICATE_TARGET}" \
+              -v STEP_NO="900" -v INSTANCE="${INSTANCE:?}" \
+			  -v RUN_ID="${RUN_ID}" \
+              -v JOB="${JOB:?}" ${STEP_DIR:?}/LoadStopOptimised.sql
+
+

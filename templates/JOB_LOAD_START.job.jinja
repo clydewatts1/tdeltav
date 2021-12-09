@@ -1,0 +1,8 @@
+#-------------------------------------------------------------------------------
+# Step 001 : Log start of job by running LoadStartOptimised.sql
+#-------------------------------------------------------------------------------
+
+step 001 Bteq -s "${SERVER:?}" -u "${LOGON:?}" -v MET_V="${MET_V}" \
+              -v STEP_NO=001 \
+              -v INSTANCE="${INSTANCE:?}" \
+              -v JOB="${JOB:?}" ${STEP_DIR:?}/LoadStartOptimised.sql
